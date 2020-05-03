@@ -62,10 +62,6 @@ to quickly create a Cobra application.`,
 			log.Fatalln(err.Error())
 		}
 
-		//if (err != nil) {
-		//	fmt.Println(err)
-		//}
-
 		if (ferr != nil) {
 			log.Fatalf("error opening file: %s", ferr)
 		}
@@ -80,19 +76,6 @@ to quickly create a Cobra application.`,
 		fmt.Println(replace.String())
 
 		replace.Run()
-
-		//if (cerr != nil) {
-		//	fmt.Println(cerr)
-		//}
-
-		//importCmd := exec.Command(
-		//	"mysql",
-		//	fmt.Sprintf("-h%s", viper.GetString("database.host")),
-		//	fmt.Sprintf("-u%s", viper.GetString("database.username")),
-		//	fmt.Sprintf("-p%s", viper.GetString("database.password")),
-		//	fmt.Sprintf("-P%s", viper.GetString("database.port")),
-		//	fmt.Sprintf("< %s/%s.sql", to, name),
-		//)
 
 		importCmd := exec.Command(
 			"mysql",
