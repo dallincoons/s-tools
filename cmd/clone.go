@@ -38,75 +38,80 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		dump := exec.Command(
-			"mysqldump",
-				fmt.Sprintf("%s", viper.GetString("database.database")),
-				fmt.Sprintf("-h%s", viper.GetString("database.host")),
-				fmt.Sprintf("-u%s", viper.GetString("database.username")),
-				fmt.Sprintf("-p%s", viper.GetString("database.password")),
-				fmt.Sprintf("-P%s", viper.GetString("database.port")),
-				"--databases",
-		)
-
-		fmt.Println(dump.String())
-
 		to, _ := cmd.Flags().GetString("to")
 		name, _ := cmd.Flags().GetString("name")
 		importDatabase, _ := cmd.Flags().GetString("database")
 
 		file, ferr := os.OpenFile(fmt.Sprintf("%s/%s.sql", to, name), os.O_RDWR|os.O_CREATE, 0644)
 
-		dump.Stdout = file
-
-		err := dump.Run(); if err != nil {
-			log.Fatalln(err.Error())
-		}
-
 		if (ferr != nil) {
 			log.Fatalf("error opening file: %s", ferr)
 		}
 
-		replace := exec.Command(
-			"sed",
-			"-i.bak",
-			fmt.Sprintf("s/%s/%s/g", viper.GetString("database.database"), importDatabase),
-			fmt.Sprintf("%s/%s.sql", to, name),
-		)
-
-		fmt.Println(replace.String())
-
-		replace.Run()
-
-		importCmd := exec.Command(
-			"mysql",
-			fmt.Sprintf("-h%s", viper.GetString("database.host")),
-			fmt.Sprintf("-u%s", viper.GetString("database.username")),
-			fmt.Sprintf("-p%s", viper.GetString("database.password")),
-			fmt.Sprintf("-P%s", viper.GetString("database.port")),
-		)
-
-		stdin, err := importCmd.StdinPipe()
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = importCmd.Start()
-		if err != nil {
-			log.Fatal(err)
-		}
-		bytes, _ := ioutil.ReadFile(file.Name())
-		_, err = io.WriteString(stdin, string(bytes))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Println(importCmd.String())
-
-		output, _ := importCmd.Output()
-
-		fmt.Println(string(output))
+		Clone(file, importDatabase, to, name)
 
 		file.Close()
 	},
+}
+
+func Clone(file *os.File, importDatabase string, to string, name string) {
+	dump := exec.Command(
+		"mysqldump",
+		fmt.Sprintf("%s", viper.GetString("database.database")),
+		fmt.Sprintf("-h%s", viper.GetString("database.host")),
+		fmt.Sprintf("-u%s", viper.GetString("database.username")),
+		fmt.Sprintf("-p%s", viper.GetString("database.password")),
+		fmt.Sprintf("-P%s", viper.GetString("database.port")),
+		"--databases",
+	)
+
+	fmt.Println(dump.String())
+
+	dump.Stdout = file
+
+	err := dump.Run()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	replace := exec.Command(
+		"sed",
+		"-i.bak",
+		fmt.Sprintf("s/%s/%s/g", viper.GetString("database.database"), importDatabase),
+		fmt.Sprintf("%s/%s.sql", to, name),
+	)
+
+	fmt.Println(replace.String())
+
+	replace.Run()
+
+	importCmd := exec.Command(
+		"mysql",
+		fmt.Sprintf("-h%s", viper.GetString("database.host")),
+		fmt.Sprintf("-u%s", viper.GetString("database.username")),
+		fmt.Sprintf("-p%s", viper.GetString("database.password")),
+		fmt.Sprintf("-P%s", viper.GetString("database.port")),
+	)
+
+	stdin, err := importCmd.StdinPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = importCmd.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
+	bytes, _ := ioutil.ReadFile(file.Name())
+	_, err = io.WriteString(stdin, string(bytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(importCmd.String())
+
+	output, _ := importCmd.Output()
+
+	fmt.Println(string(output))
 }
 
 func init() {
