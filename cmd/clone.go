@@ -25,6 +25,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 // cloneCmd represents the clone command
@@ -38,26 +39,47 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		to, _ := cmd.Flags().GetString("to")
-		name, _ := cmd.Flags().GetString("name")
-		importDatabase, _ := cmd.Flags().GetString("database")
+		dump_dir, _ := cmd.Flags().GetString("dump_dir")
+		dump_name, _ := cmd.Flags().GetString("dump_name")
+		databaseToCloneName, _ := cmd.Flags().GetString("from")
+		importDatabaseName, _ := cmd.Flags().GetString("to")
 
-		file, ferr := os.OpenFile(fmt.Sprintf("%s/%s.sql", to, name), os.O_RDWR|os.O_CREATE, 0644)
+		dump_name = strings.TrimRight(dump_name, ".sql")
+
+		file, ferr := os.OpenFile(fmt.Sprintf("%s/%s.sql", dump_dir, dump_name), os.O_RDWR|os.O_CREATE, 0644)
 
 		if (ferr != nil) {
 			log.Fatalf("error opening file: %s", ferr)
 		}
 
-		Clone(file, importDatabase, to, name)
+		Clone(file, databaseToCloneName, importDatabaseName, dump_dir, dump_name)
 
 		file.Close()
 	},
 }
 
-func Clone(file *os.File, importDatabase string, to string, name string) {
+func Clone(file *os.File, databaseToCloneName string, importDatabaseName string, dump_dir string, dump_name string) {
+	fmt.Println("Cloning database")
+	dumpDatabase(file, databaseToCloneName)
+
+	importDatabase(importDatabaseName, dump_dir, dump_name, file)
+
+	fmt.Println("Cleaning up")
+	removeDumpFiles(dump_dir, dump_name)
+
+	fmt.Println(fmt.Sprintf("%s successfully cloned from %s", importDatabaseName, databaseToCloneName))
+}
+
+func removeDumpFiles(dump_dir string, dump_name string) {
+	cleanup := exec.Command("rm", fmt.Sprintf("%s/%s.sql", dump_dir, dump_name), fmt.Sprintf("%s/%s.sql.bak", dump_dir, dump_name))
+
+	cleanup.Run()
+}
+
+func dumpDatabase(file *os.File, databaseToCloneName string) {
 	dump := exec.Command(
 		"mysqldump",
-		fmt.Sprintf("%s", viper.GetString("database.database")),
+		fmt.Sprintf("%s", databaseToCloneName),
 		fmt.Sprintf("-h%s", viper.GetString("database.host")),
 		fmt.Sprintf("-u%s", viper.GetString("database.username")),
 		fmt.Sprintf("-p%s", viper.GetString("database.password")),
@@ -65,7 +87,9 @@ func Clone(file *os.File, importDatabase string, to string, name string) {
 		"--databases",
 	)
 
-	fmt.Println(dump.String())
+	if Verbose {
+		fmt.Println(dump.String())
+	}
 
 	dump.Stdout = file
 
@@ -73,17 +97,10 @@ func Clone(file *os.File, importDatabase string, to string, name string) {
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
+}
 
-	replace := exec.Command(
-		"sed",
-		"-i.bak",
-		fmt.Sprintf("s/%s/%s/g", viper.GetString("database.database"), importDatabase),
-		fmt.Sprintf("%s/%s.sql", to, name),
-	)
-
-	fmt.Println(replace.String())
-
-	replace.Run()
+func importDatabase(importDatabase string, to string, name string, file *os.File) {
+	replaceDatabaseName(importDatabase, to, name)
 
 	importCmd := exec.Command(
 		"mysql",
@@ -93,6 +110,16 @@ func Clone(file *os.File, importDatabase string, to string, name string) {
 		fmt.Sprintf("-P%s", viper.GetString("database.port")),
 	)
 
+	addDumpToStdin(importCmd, file)
+
+	importCmd.Wait()
+
+	if (Verbose) {
+		fmt.Println(importCmd.String())
+	}
+}
+
+func addDumpToStdin(importCmd *exec.Cmd, file *os.File) {
 	stdin, err := importCmd.StdinPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -103,15 +130,27 @@ func Clone(file *os.File, importDatabase string, to string, name string) {
 	}
 	bytes, _ := ioutil.ReadFile(file.Name())
 	_, err = io.WriteString(stdin, string(bytes))
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(importCmd.String())
+	stdin.Close()
+}
 
-	output, _ := importCmd.Output()
+func replaceDatabaseName(importDatabase string, to string, name string) {
+	replace := exec.Command(
+		"sed",
+		"-i.bak",
+		fmt.Sprintf("s/%s/%s/g", viper.GetString("database.database"), importDatabase),
+		fmt.Sprintf("%s/%s.sql", to, name),
+	)
 
-	fmt.Println(string(output))
+	if Verbose {
+		fmt.Println(replace.String())
+	}
+
+	replace.Run()
 }
 
 func init() {
@@ -119,7 +158,8 @@ func init() {
 
 	home, _ := os.UserHomeDir()
 
-	cloneCmd.Flags().String("to", home, "Specify a directory to output the dump file")
-	cloneCmd.Flags().String("name", "dump", "Specify the name of the dump file")
-	cloneCmd.Flags().String("database", "cloned", "Specify a directory to output the dump file")
+	cloneCmd.Flags().String("dump_dir", home, "Specify a directory to output the dump file")
+	cloneCmd.Flags().String("dump_name", "dump", "Specify the name of the dump file")
+	cloneCmd.Flags().String("to", "cloned", "Specify name of new database")
+	cloneCmd.Flags().String("from", viper.GetString("database.database"), "Specify name of database to clone")
 }

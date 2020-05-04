@@ -17,9 +17,11 @@ func TestCopyExistingDatabase(t *testing.T) {
 	}
 
 	_, err = db.Exec("drop table if exists test;")
-	_, err = db.Exec("drop table if exists new_db;")
-	_, err = db.Exec("create table test (column1 int not null, column2 int not null);")
+	_, err = db.Exec("drop database if exists new_db;")
+	_, err = db.Exec("create table test (column1 int not 1null, column2 int not null);")
 	_, err = db.Exec("insert into test (column1, column2) VALUE (1,2);")
+
+	db.Close()
 
 	file, _ := os.OpenFile("./test_dump.sql",  os.O_RDWR|os.O_CREATE, 0644)
 
@@ -29,7 +31,9 @@ func TestCopyExistingDatabase(t *testing.T) {
 	viper.Set("database.password", "secret")
 	viper.Set("database.port", "3310")
 
-	Clone(file, "new_db", ".", "test_dump")
+	Clone(file, "original", "new_db", ".", "test_dump")
+
+	db, _ = sql.Open("mysql", "root:secret@tcp(localhost:3310)/")
 
 	rows, _ := db.Query("Show databases")
 
@@ -46,5 +50,17 @@ func TestCopyExistingDatabase(t *testing.T) {
 
 	if (!ok) {
 		log.Fatalln("Expected to find new_db in list of databases")
+	}
+
+	_, err = os.Stat("./test_dump.sql")
+
+	if (err == nil) {
+		log.Fatalln("dump file was not removed")
+	}
+
+	_, err = os.Stat("./test_dump.sql.bak")
+
+	if (err == nil) {
+		log.Fatalln("dump backup file was not removed")
 	}
 }
