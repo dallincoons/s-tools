@@ -43,6 +43,7 @@ to quickly create a Cobra application.`,
 		dump_name, _ := cmd.Flags().GetString("dump_name")
 		databaseToCloneName, _ := cmd.Flags().GetString("from")
 		importDatabaseName, _ := cmd.Flags().GetString("to")
+		shouldSwitchDb, _ := cmd.Flags().GetBool("switch")
 
 		dump_name = strings.TrimRight(dump_name, ".sql")
 
@@ -52,22 +53,49 @@ to quickly create a Cobra application.`,
 			log.Fatalf("error opening file: %s", ferr)
 		}
 
-		Clone(file, databaseToCloneName, importDatabaseName, dump_dir, dump_name)
+		cloner := &DBCloner{
+			file: file,
+			cloneFrom: databaseToCloneName,
+			cloneTo: importDatabaseName,
+			dumpDir: dump_dir,
+			dumpName: dump_name,
+		}
+
+		if (shouldSwitchDb) {
+			path, _ := os.Getwd()
+			cloner.CloneAndSwitch(path)
+		} else {
+			cloner.Clone()
+		}
 
 		file.Close()
 	},
 }
 
-func Clone(file *os.File, databaseToCloneName string, importDatabaseName string, dump_dir string, dump_name string) {
-	fmt.Println("Cloning database")
-	dumpDatabase(file, databaseToCloneName)
+type DBCloner struct {
+	file *os.File
+	cloneFrom string
+	cloneTo string
+	dumpDir string
+	dumpName string
+}
 
-	importDatabase(importDatabaseName, dump_dir, dump_name, file)
+func (this *DBCloner) CloneAndSwitch(environmentPath string) {
+	this.Clone()
+
+	RunSwitch(environmentPath, this.cloneTo)
+}
+
+func (this *DBCloner) Clone() {
+	fmt.Println("Cloning database")
+	dumpDatabase(this.file, this.cloneFrom)
+
+	importDatabase(this.cloneTo, this.dumpDir, this.dumpName, this.file)
 
 	fmt.Println("Cleaning up")
-	removeDumpFiles(dump_dir, dump_name)
+	removeDumpFiles(this.dumpDir, this.dumpName)
 
-	fmt.Println(fmt.Sprintf("%s successfully cloned from %s", importDatabaseName, databaseToCloneName))
+	fmt.Println(fmt.Sprintf("%s successfully cloned from %s", this.cloneTo, this.cloneFrom))
 }
 
 func removeDumpFiles(dump_dir string, dump_name string) {
@@ -132,7 +160,7 @@ func addDumpToStdin(importCmd *exec.Cmd, file *os.File) {
 	_, err = io.WriteString(stdin, string(bytes))
 
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal(err)
 	}
 
 	stdin.Close()
@@ -162,4 +190,5 @@ func init() {
 	cloneCmd.Flags().String("dump_name", "dump", "Specify the name of the dump file")
 	cloneCmd.Flags().String("to", "cloned", "Specify name of new database")
 	cloneCmd.Flags().String("from", viper.GetString("database.database"), "Specify name of database to clone")
+	cloneCmd.Flags().Bool("switch", true, "Specify whether to switch databases in environment")
 }

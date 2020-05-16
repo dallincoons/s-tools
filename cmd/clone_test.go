@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/viper"
+	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -10,30 +11,73 @@ import (
 )
 
 func TestCopyExistingDatabase(t *testing.T) {
-	db, err := sql.Open("mysql", "root:secret@tcp(localhost:3310)/original")
+	setUpOriginalDatabase()
+	setUpConfiguration()
+	ioutil.WriteFile("../test_fixtures/.env", []byte("DB_DATABASE=fakedb1"), 0644)
 
-	if (err != nil) {
-		log.Fatalf("could not connect to database")
+	file, _ := os.OpenFile("./test_dump.sql", os.O_RDWR|os.O_CREATE, 0644)
+
+	cloner := &DBCloner{
+		file: file,
+		cloneFrom: "original",
+		cloneTo: "new_db",
+		dumpDir: ".",
+		dumpName: "test_dump",
 	}
 
-	_, err = db.Exec("drop table if exists test;")
-	_, err = db.Exec("drop database if exists new_db;")
-	_, err = db.Exec("create table test (column1 int not 1null, column2 int not null);")
-	_, err = db.Exec("insert into test (column1, column2) VALUE (1,2);")
+	cloner.Clone()
 
-	db.Close()
+	err, databases := getListOfDatabases()
 
-	file, _ := os.OpenFile("./test_dump.sql",  os.O_RDWR|os.O_CREATE, 0644)
+	_, ok := databases["new_db"]
 
-	viper.Set("database.database", "original")
-	viper.Set("database.host", "127.0.0.1")
-	viper.Set("database.username", "root")
-	viper.Set("database.password", "secret")
-	viper.Set("database.port", "3310")
+	if !ok {
+		log.Fatalln("Expected to find new_db in list of databases")
+	}
 
-	Clone(file, "original", "new_db", ".", "test_dump")
+	_, err = os.Stat("./test_dump.sql")
 
-	db, _ = sql.Open("mysql", "root:secret@tcp(localhost:3310)/")
+	if err == nil {
+		log.Fatalln("dump file was not removed")
+	}
+
+	_, err = os.Stat("./test_dump.sql.bak")
+
+	if err == nil {
+		log.Fatalln("dump backup file was not removed")
+	}
+
+	contents, _ := ioutil.ReadFile("../test_fixtures/.env")
+	if string(contents) != "DB_DATABASE=fakedb1" {
+		log.Fatalf("content of env were incorrectly changed, received %s", string(contents))
+	}
+}
+
+func TestDatabaseIsSwitchedInEnvFile(t *testing.T) {
+	setUpOriginalDatabase()
+	setUpConfiguration()
+	ioutil.WriteFile("../test_fixtures/.env", []byte("DB_DATABASE=original"), 0644)
+
+	file, _ := os.OpenFile("./test_dump.sql", os.O_RDWR|os.O_CREATE, 0644)
+
+	cloner := &DBCloner{
+		file: file,
+		cloneFrom: "original",
+		cloneTo: "new_db",
+		dumpDir: ".",
+		dumpName: "test_dump",
+	}
+
+	cloner.CloneAndSwitch("../test_fixtures/")
+
+	contents, _ := ioutil.ReadFile("../test_fixtures/.env")
+	if string(contents) != "DB_DATABASE=new_db" {
+		log.Fatalf("content of env were not changed, received %s", string(contents))
+	}
+}
+
+func getListOfDatabases() (error, map[string]int) {
+	db, err := sql.Open("mysql", "root:secret@tcp(localhost:3310)/")
 
 	rows, _ := db.Query("Show databases")
 
@@ -45,22 +89,28 @@ func TestCopyExistingDatabase(t *testing.T) {
 
 		databases[db] = 1
 	}
+	return err, databases
+}
 
-	_, ok := databases["new_db"]
+func setUpConfiguration() {
+	viper.Set("database.database", "original")
+	viper.Set("database.host", "127.0.0.1")
+	viper.Set("database.username", "root")
+	viper.Set("database.password", "secret")
+	viper.Set("database.port", "3310")
+}
 
-	if (!ok) {
-		log.Fatalln("Expected to find new_db in list of databases")
+func setUpOriginalDatabase() {
+	db, err := sql.Open("mysql", "root:secret@tcp(localhost:3310)/original")
+
+	if err != nil {
+		log.Fatalf("could not connect to database")
 	}
 
-	_, err = os.Stat("./test_dump.sql")
+	_, err = db.Exec("drop table if exists test;")
+	_, err = db.Exec("drop database if exists new_db;")
+	_, err = db.Exec("create table test (column1 int not null, column2 int not null);")
+	_, err = db.Exec("insert into test (column1, column2) VALUE (1,2);")
 
-	if (err == nil) {
-		log.Fatalln("dump file was not removed")
-	}
-
-	_, err = os.Stat("./test_dump.sql.bak")
-
-	if (err == nil) {
-		log.Fatalln("dump backup file was not removed")
-	}
+	db.Close()
 }
