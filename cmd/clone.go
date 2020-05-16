@@ -132,7 +132,7 @@ func addDumpToStdin(importCmd *exec.Cmd, file *os.File) {
 	_, err = io.WriteString(stdin, string(bytes))
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 
 	stdin.Close()
