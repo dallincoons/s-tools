@@ -40,7 +40,7 @@ to quickly create a Cobra application.`,
 			log.Fatal(err)
 		}
 
-		db_name, _ := cmd.Flags().GetString("db_name")
+		db_name, _ := cmd.Flags().GetString("name")
 
 		RunSwitch(dir, db_name)
 	},
@@ -66,6 +66,7 @@ func RunSwitch(path string, db_name string) (bool, error) {
 }
 
 func init() {
-	switchCmd.Flags().String("db_name", "example_db", "Specify the name of the database to switch to")
+	switchCmd.Flags().StringP("name", "n", "example_db", "Specify the name of the database to switch to")
+	switchCmd.MarkFlagRequired("name")
 	rootCmd.AddCommand(switchCmd)
 }
