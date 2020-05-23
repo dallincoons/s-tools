@@ -19,7 +19,7 @@ func TestCopyExistingDatabase(t *testing.T) {
 
 	cloner := &DBCloner{
 		file: file,
-		cloneFrom: "original",
+		cloneFrom: "clone_from",
 		cloneTo: "new_db",
 		dumpDir: ".",
 		dumpName: "test_dump",
@@ -62,7 +62,7 @@ func TestDatabaseIsSwitchedInEnvFile(t *testing.T) {
 
 	cloner := &DBCloner{
 		file: file,
-		cloneFrom: "original",
+		cloneFrom: "clone_from",
 		cloneTo: "new_db",
 		dumpDir: ".",
 		dumpName: "test_dump",
@@ -101,12 +101,14 @@ func setUpConfiguration() {
 }
 
 func setUpOriginalDatabase() {
-	db, err := sql.Open("mysql", "root:secret@tcp(localhost:3310)/original")
+	db, err := sql.Open("mysql", "root:secret@tcp(localhost:3310)/clone_from")
 
 	if err != nil {
 		log.Fatalf("could not connect to database")
 	}
 
+	_, err = db.Exec("drop table if exists clone_from;")
+	_, err = db.Exec("create database clone_from")
 	_, err = db.Exec("drop table if exists test;")
 	_, err = db.Exec("drop database if exists new_db;")
 	_, err = db.Exec("create table test (column1 int not null, column2 int not null);")

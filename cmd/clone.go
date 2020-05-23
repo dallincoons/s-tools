@@ -87,10 +87,13 @@ func (this *DBCloner) CloneAndSwitch(environmentPath string) {
 }
 
 func (this *DBCloner) Clone() {
-	fmt.Println("Cloning database")
+	fmt.Println("Dumping database")
 	dumpDatabase(this.file, this.cloneFrom)
+	fmt.Println("Dumped")
 
-	importDatabase(this.cloneTo, this.dumpDir, this.dumpName, this.file)
+	fmt.Println("Importing database")
+	this.importDatabase()
+	fmt.Println("Imported")
 
 	fmt.Println("Cleaning up")
 	removeDumpFiles(this.dumpDir, this.dumpName)
@@ -100,6 +103,10 @@ func (this *DBCloner) Clone() {
 
 func removeDumpFiles(dump_dir string, dump_name string) {
 	cleanup := exec.Command("rm", fmt.Sprintf("%s/%s.sql", dump_dir, dump_name), fmt.Sprintf("%s/%s.sql.bak", dump_dir, dump_name))
+
+	if (Verbose) {
+		fmt.Println(cleanup.String())
+	}
 
 	cleanup.Run()
 }
@@ -127,8 +134,8 @@ func dumpDatabase(file *os.File, databaseToCloneName string) {
 	}
 }
 
-func importDatabase(importDatabase string, to string, name string, file *os.File) {
-	replaceDatabaseName(importDatabase, to, name)
+func (this *DBCloner) importDatabase() {
+	this.replaceDatabaseName()
 
 	importCmd := exec.Command(
 		"mysql",
@@ -138,7 +145,7 @@ func importDatabase(importDatabase string, to string, name string, file *os.File
 		fmt.Sprintf("-P%s", viper.GetString("database.port")),
 	)
 
-	addDumpToStdin(importCmd, file)
+	addDumpToStdin(importCmd, this.file)
 
 	importCmd.Wait()
 
@@ -166,12 +173,12 @@ func addDumpToStdin(importCmd *exec.Cmd, file *os.File) {
 	stdin.Close()
 }
 
-func replaceDatabaseName(importDatabase string, to string, name string) {
+func (this *DBCloner) replaceDatabaseName() {
 	replace := exec.Command(
 		"sed",
 		"-i.bak",
-		fmt.Sprintf("s/%s/%s/g", viper.GetString("database.database"), importDatabase),
-		fmt.Sprintf("%s/%s.sql", to, name),
+		fmt.Sprintf("s/%s/%s/g", this.cloneFrom, this.cloneTo),
+		fmt.Sprintf("%s/%s.sql", this.dumpDir, this.dumpName),
 	)
 
 	if Verbose {
@@ -191,4 +198,7 @@ func init() {
 	cloneCmd.Flags().String("to", "cloned", "Specify name of new database")
 	cloneCmd.Flags().String("from", viper.GetString("database.database"), "Specify name of database to clone")
 	cloneCmd.Flags().Bool("switch", true, "Specify whether to switch databases in environment")
+
+	cloneCmd.MarkFlagRequired("to")
+	cloneCmd.MarkFlagRequired("from")
 }
