@@ -28,6 +28,14 @@ import (
 	"strings"
 )
 
+type DBCloner struct {
+	file *os.File
+	cloneFrom string
+	cloneTo string
+	dumpDir string
+	dumpName string
+}
+
 // cloneCmd represents the clone command
 var cloneCmd = &cobra.Command{
 	Use:   "clone",
@@ -39,45 +47,45 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		dump_dir, _ := cmd.Flags().GetString("dump_dir")
-		dump_name, _ := cmd.Flags().GetString("dump_name")
-		databaseToCloneName, _ := cmd.Flags().GetString("from")
-		importDatabaseName, _ := cmd.Flags().GetString("to")
+		dumpDir, _ := cmd.Flags().GetString("dump_dir")
+		dumpName, _ := cmd.Flags().GetString("dump_name")
+		cloneFrom, _ := cmd.Flags().GetString("from")
+		cloneTo, _ := cmd.Flags().GetString("to")
 		shouldSwitchDb, _ := cmd.Flags().GetBool("switch")
 
-		dump_name = strings.TrimRight(dump_name, ".sql")
+		dumpName = strings.TrimRight(dumpName, ".sql")
 
-		file, ferr := os.OpenFile(fmt.Sprintf("%s/%s.sql", dump_dir, dump_name), os.O_RDWR|os.O_CREATE, 0644)
+		file, ferr := os.OpenFile(fmt.Sprintf("%s/%s.sql", dumpDir, dumpName), os.O_RDWR|os.O_CREATE, 0644)
 
 		if (ferr != nil) {
 			log.Fatalf("error opening file: %s", ferr)
 		}
 
-		cloner := &DBCloner{
-			file: file,
-			cloneFrom: databaseToCloneName,
-			cloneTo: importDatabaseName,
-			dumpDir: dump_dir,
-			dumpName: dump_name,
-		}
+		cloner := createCloner(file, cloneFrom, cloneTo, dumpDir, dumpName)
 
-		if (shouldSwitchDb) {
-			path, _ := os.Getwd()
-			cloner.CloneAndSwitch(path)
-		} else {
-			cloner.Clone()
-		}
+		switchDbIfRequired(shouldSwitchDb, cloner)
 
 		file.Close()
 	},
 }
 
-type DBCloner struct {
-	file *os.File
-	cloneFrom string
-	cloneTo string
-	dumpDir string
-	dumpName string
+func createCloner(file *os.File, cloneFrom string, cloneTo string, dumpDir string, dumpName string) (*DBCloner) {
+	return &DBCloner{
+		file:      file,
+		cloneFrom: cloneFrom,
+		cloneTo:   cloneTo,
+		dumpDir:   dumpDir,
+		dumpName:  dumpName,
+	}
+}
+
+func switchDbIfRequired(shouldSwitchDb bool, cloner *DBCloner) {
+	if shouldSwitchDb {
+		path, _ := os.Getwd()
+		cloner.CloneAndSwitch(path)
+	} else {
+		cloner.Clone()
+	}
 }
 
 func (this *DBCloner) CloneAndSwitch(environmentPath string) {
