@@ -47,11 +47,13 @@
 </div>
 </div>
 
+@include('sibling')
+
 </div>
 @endpush
 
 @push('content-nav')
-  @include('account._nav')
+  @include('dir1.view1')
 @endpush
 
 @push('with-nav') with-nav @endpush
