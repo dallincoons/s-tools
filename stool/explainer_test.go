@@ -6,7 +6,7 @@ import (
 )
 
 func TestGetErrorIfViewDoesNotExist(t *testing.T) {
-	explainer := getViewExplainer("../test_fixtures/views");
+	explainer := getViewExplainer()
 
 	_, error := explainer.GetAllVariablesFrom("dudnt exist")
 
@@ -16,9 +16,9 @@ func TestGetErrorIfViewDoesNotExist(t *testing.T) {
 }
 
 func TestGetAllVariablesInAView(t *testing.T) {
-	explainer := getViewExplainer("../test_fixtures/views");
+	explainer := getViewExplainer()
 
-	variables, _ := explainer.GetAllVariablesFrom("root")
+	variables, _ := explainer.GetAllVariablesFrom("../test_fixtures/views/root.blade.php")
 
 	_, found := variables["$title"]
 
@@ -27,8 +27,6 @@ func TestGetAllVariablesInAView(t *testing.T) {
 	}
 }
 
-func getViewExplainer(rootPath string) *ViewExplainer {
-	return &ViewExplainer{
-		RootPath: rootPath,
-	}
+func getViewExplainer() *ViewExplainer {
+	return &ViewExplainer{}
 }

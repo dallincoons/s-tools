@@ -6,6 +6,18 @@ import (
 	"testing"
 )
 
+func TestGetFilePathFromViewString(t *testing.T) {
+	finder := getViewFinder()
+
+	filepath := finder.GetFilePath("dir1.dir2.view1")
+
+	if filepath != "../test_fixtures/views/dir1/dir2/view1.blade.php" {
+		log.Fatal(
+			fmt.Sprintf("file not found, got %s, expected %s", filepath, "../test_fixtures/views/dir1/dir2/view1.blade.php"),
+		)
+	}
+}
+
 func TestFindViewFromDotDelimitedString(t *testing.T) {
 	finder := getViewFinder()
 

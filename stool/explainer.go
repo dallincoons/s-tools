@@ -1,18 +1,16 @@
 package stool
 
 import (
-	"fmt"
 	"io/ioutil"
 	"regexp"
 )
 
 type ViewExplainer struct {
-	RootPath string
 }
 
-func (this *ViewExplainer) GetAllVariablesFrom(viewName string) (map[string]int, error) {
+func (this *ViewExplainer) GetAllVariablesFrom(path string) (map[string]int, error) {
 	variablesCounts := make(map[string]int)
-	c, err := ioutil.ReadFile(fmt.Sprintf("%s/%s.blade.php", this.RootPath, viewName))
+	c, err := ioutil.ReadFile(path)
 
 	contents := string(c)
 

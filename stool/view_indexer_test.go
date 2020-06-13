@@ -9,9 +9,9 @@ func TestFindAllIncludes(t *testing.T) {
 	var siblingFound bool
 	var view1Found bool
 
-	view_indexer := newViewIndexer("../test_fixtures/views/root.blade.php")
+	view_indexer := newViewIndexer()
 
-	includes, _ := view_indexer.FindAllIncludes()
+	includes, _ := view_indexer.FindAllIncludes("../test_fixtures/views/root.blade.php")
 
 	for _, include := range includes {
 		if (include == "sibling") {
@@ -32,8 +32,31 @@ func TestFindAllIncludes(t *testing.T) {
 	}
 }
 
-func newViewIndexer(path string) *ViewIndexer {
+func TestBuildViewTree(t *testing.T) {
+	view_indexer := newViewIndexer()
+
+	tree := view_indexer.index("root")
+
+	if (tree.Name != "root") {
+		log.Fatal("expected to find root node with name of root")
+	}
+
+	if (tree.children[0].Name != "sibling") {
+		log.Fatal("expected to find child node with name of sibling")
+	}
+
+	if (tree.children[1].Name != "dir1.view1") {
+		log.Fatal("expected to find child node with name of dir1.view1")
+	}
+
+	if (tree.children[1].children[0].Name != "dir2.view2") {
+		log.Fatal("expected to find child node with name of dir2.view2")
+	}
+}
+
+func newViewIndexer() *ViewIndexer {
 	return &ViewIndexer{
-		Path: path,
+		&ViewExplainer{},
+		getViewFinder(),
 	}
 }
