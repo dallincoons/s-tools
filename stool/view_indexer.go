@@ -6,8 +6,8 @@ import (
 )
 
 type ViewIndexer struct {
-	explainer *ViewExplainer
-	viewFinder *ViewFinder
+	Explainer *ViewExplainer
+	ViewFinder *ViewFinder
 }
 
 type ViewNode struct {
@@ -20,11 +20,11 @@ type ViewNode struct {
 var tree *ViewNode
 
 func (this *ViewIndexer) index(view_name string) *ViewNode {
-	path := this.viewFinder.GetFilePath(view_name)
+	path := this.ViewFinder.GetFilePath(view_name)
 	includes, err := this.FindAllIncludes(path)
 
 	if err == nil {
-		variables, _ := this.explainer.GetAllVariablesFrom(path)
+		variables, _ := this.Explainer.GetAllVariablesFrom(path)
 
 		tree = &ViewNode{
 			Name: view_name,
@@ -42,9 +42,9 @@ func (this *ViewIndexer) addChildren(parentNode *ViewNode, includes []string) {
 	var child *ViewNode
 
 	for _, view_name := range includes {
-		path = this.viewFinder.GetFilePath(view_name)
+		path = this.ViewFinder.GetFilePath(view_name)
 
-		variables, _ := this.explainer.GetAllVariablesFrom(path)
+		variables, _ := this.Explainer.GetAllVariablesFrom(path)
 
 		child = &ViewNode {
 			Name: view_name,
@@ -54,7 +54,7 @@ func (this *ViewIndexer) addChildren(parentNode *ViewNode, includes []string) {
 
 		parentNode.children = append(parentNode.children, child)
 
-		includes, _ := this.FindAllIncludes(this.viewFinder.GetFilePath(view_name))
+		includes, _ := this.FindAllIncludes(this.ViewFinder.GetFilePath(view_name))
 
 		this.addChildren(child, includes)
 	}
