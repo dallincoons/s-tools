@@ -18,6 +18,10 @@ func (this *ViewIndexer) FindAllIncludes() ([]string, error) {
 		return nil, err
 	}
 
+	return this.getViewNames(contents, viewNames), nil
+}
+
+func (this *ViewIndexer) getViewNames(contents []byte, viewNames []string) []string {
 	re := regexp.MustCompile("@include\\('(.+)'\\)")
 
 	results := re.FindAllStringSubmatch(string(contents), -1)
@@ -26,5 +30,5 @@ func (this *ViewIndexer) FindAllIncludes() ([]string, error) {
 		viewNames = append(viewNames, result[1])
 	}
 
-	return viewNames, nil
+	return viewNames
 }
