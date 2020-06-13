@@ -11,6 +11,7 @@ type ViewExplainer struct {
 }
 
 func (this *ViewExplainer) GetAllVariablesFrom(viewName string) (map[string]int, error) {
+	variablesCounts := make(map[string]int)
 	c, err := ioutil.ReadFile(fmt.Sprintf("%s/%s.blade.php", this.RootPath, viewName))
 
 	contents := string(c)
@@ -23,11 +24,9 @@ func (this *ViewExplainer) GetAllVariablesFrom(viewName string) (map[string]int,
 
 	result := re.FindAllString(contents, -1)
 
-	//for r := range result {
-	//
-	//}
+	for _, r := range result {
+		variablesCounts[r]++
+	}
 
-	fmt.Println(result)
-
-	return map[string]int{}, nil
+	return variablesCounts, nil
 }

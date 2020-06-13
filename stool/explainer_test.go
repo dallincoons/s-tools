@@ -1,9 +1,8 @@
-package cmd
+package stool
 
 import (
 	"log"
 	"testing"
-	"surgio-tools/stool"
 )
 
 func TestGetErrorIfViewDoesNotExist(t *testing.T) {
@@ -28,8 +27,8 @@ func TestGetAllVariablesInAView(t *testing.T) {
 	}
 }
 
-func getViewExplainer(rootPath string) *stool.ViewExplainer {
-	return &stool.ViewExplainer{
+func getViewExplainer(rootPath string) *ViewExplainer {
+	return &ViewExplainer{
 		RootPath: rootPath,
 	}
 }
