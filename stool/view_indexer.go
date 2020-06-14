@@ -12,14 +12,14 @@ type ViewIndexer struct {
 
 type ViewNode struct {
 	Name string
-	children []*ViewNode
+	Children []*ViewNode
 	parent *ViewNode
 	variables map[string]int
 }
 
 var tree *ViewNode
 
-func (this *ViewIndexer) index(view_name string) *ViewNode {
+func (this *ViewIndexer) Index(view_name string) *ViewNode {
 	path := this.ViewFinder.GetFilePath(view_name)
 	includes, err := this.FindAllIncludes(path)
 
@@ -52,7 +52,7 @@ func (this *ViewIndexer) addChildren(parentNode *ViewNode, includes []string) {
 			variables: variables,
 		}
 
-		parentNode.children = append(parentNode.children, child)
+		parentNode.Children = append(parentNode.Children, child)
 
 		includes, _ := this.FindAllIncludes(this.ViewFinder.GetFilePath(view_name))
 
@@ -73,7 +73,7 @@ func (this *ViewIndexer) FindAllIncludes(path string) ([]string, error) {
 }
 
 func (this *ViewIndexer) getViewNames(contents []byte, viewNames []string) []string {
-	re := regexp.MustCompile("@include\\('(.+)'\\)")
+	re := regexp.MustCompile("@include\\('(.+)\\'")
 
 	results := re.FindAllStringSubmatch(string(contents), -1)
 

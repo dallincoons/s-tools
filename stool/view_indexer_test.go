@@ -35,21 +35,29 @@ func TestFindAllIncludes(t *testing.T) {
 func TestBuildViewTree(t *testing.T) {
 	view_indexer := newViewIndexer()
 
-	tree := view_indexer.index("root")
+	tree := view_indexer.Index("root")
 
 	if (tree.Name != "root") {
 		log.Fatal("expected to find root node with name of root")
 	}
 
-	if (tree.children[0].Name != "sibling") {
+	if (tree.Children[0].Name != "account.sub-header") {
 		log.Fatal("expected to find child node with name of sibling")
 	}
 
-	if (tree.children[1].Name != "dir1.view1") {
+	if (tree.Children[1].Name != "sibling") {
+		log.Fatal("expected to find child node with name of sibling")
+	}
+
+	if (tree.Children[2].Name != "dir1.view1") {
 		log.Fatal("expected to find child node with name of dir1.view1")
 	}
 
-	if (tree.children[1].children[0].Name != "dir2.view2") {
+	if (tree.Children[2].Children[1].Name != "ops._nav") {
+		log.Fatal("expected to find child node with name of ops._nav")
+	}
+
+	if (tree.Children[2].Children[0].Name != "dir2.view2") {
 		log.Fatal("expected to find child node with name of dir2.view2")
 	}
 }

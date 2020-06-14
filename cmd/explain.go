@@ -45,13 +45,14 @@ to quickly create a Cobra application.`,
 
 		fmt.Println(variables)
 
-		//indexer := &stool.ViewIndexer{
-		//	&stool.ViewExplainer{},
-		//	&stool.ViewFinder{
-		//				view_root,
-		//	},
-		//}
+		indexer := &stool.ViewIndexer{
+			explainer,
+				finder,
+		}
 
+		tree := indexer.Index(view_name)
+
+		fmt.Println(tree.Children)
 	},
 }
 
