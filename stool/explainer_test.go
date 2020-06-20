@@ -27,6 +27,6 @@ func TestGetAllVariablesInAView(t *testing.T) {
 	}
 }
 
-func getViewExplainer() *ViewExplainer {
-	return &ViewExplainer{}
+func getViewExplainer() *VariableCollector {
+	return &VariableCollector{}
 }

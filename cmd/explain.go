@@ -16,9 +16,11 @@ limitations under the License.
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 	"surgio-tools/stool"
 )
 
@@ -35,30 +37,43 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		view_root := viper.GetString("views.root")
 		view_name, _ := cmd.Flags().GetString("view")
+		show_parents, _ := cmd.Flags().GetBool("parents")
 
-		explainer := &stool.ViewExplainer{}
+		explainer := &stool.VariableCollector{}
 		finder := &stool.ViewFinder{
 			view_root,
 		}
 
-		variables, _ := explainer.GetAllVariablesFrom(finder.GetFilePath(view_name))
+		collector := &stool.ViewExplainer{ViewIndexer:stool.ViewIndexer{
+			RootDir:   view_root,
+			Explainer:  explainer,
+			ViewFinder: finder,
+			Writer:     bufio.NewWriter(os.Stdout),
+		}}
 
-		fmt.Println(variables)
+		if show_parents {
+			parents := collector.CollectParentsFrom(view_name)
 
-		indexer := &stool.ViewIndexer{
-			explainer,
-				finder,
+			for parent, _ := range parents {
+				fmt.Println(parent)
+			}
+
+			return
 		}
 
-		tree := indexer.Index(view_name)
+		variables := collector.CollectVariablesFrom(view_name)
 
-		fmt.Println(tree.Children)
+		for v, count := range variables {
+			fmt.Fprintf(os.Stdout,"%-2d %-8s\n", count, v)
+		}
 	},
 }
 
 func init() {
 	explainCmd.Flags().String("view", "", "specify name of view to explain")
 	explainCmd.MarkFlagRequired("view")
+
+	explainCmd.Flags().Bool("parents", false, "specify whether to show all parents of view")
 
 	rootCmd.AddCommand(explainCmd)
 }

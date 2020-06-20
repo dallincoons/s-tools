@@ -5,10 +5,10 @@ import (
 	"regexp"
 )
 
-type ViewExplainer struct {
+type VariableCollector struct {
 }
 
-func (this *ViewExplainer) GetAllVariablesFrom(path string) (map[string]int, error) {
+func (this *VariableCollector) GetAllVariablesFrom(path string) (map[string]int, error) {
 	variablesCounts := make(map[string]int)
 	c, err := ioutil.ReadFile(path)
 

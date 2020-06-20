@@ -1,9 +1,73 @@
 package stool
 
 import (
+	"bufio"
+	"bytes"
 	"log"
 	"testing"
 )
+
+func TestIndexEntireDirectory(t *testing.T) {
+	buf := new(bytes.Buffer)
+	fakeWriter := bufio.NewWriter(buf)
+
+	indexer := &ViewIndexer{
+		RootDir: "../test_fixtures/views2",
+		Explainer: &VariableCollector{},
+		ViewFinder: getViewFinder(),
+		Writer: fakeWriter,
+	}
+
+	nodes := indexer.IndexViews("../test_fixtures/views2")
+
+	root := nodes["root"]
+	if root.Children[0] != "sibling" {
+		log.Fatalf("expected to find child node with name of sibling, got %q" , root.Children[0])
+	}
+
+	if root.Children[1] != "dir1.view1" {
+		log.Fatalf("expected to find child node with name of dir1.view1, got %q" , root.Children[1])
+	}
+
+	if len(root.Parents) != 0 {
+		log.Fatalf("expected to not find parents, found %d parents" , len(root.Parents))
+	}
+
+	sibling := nodes["sibling"]
+	if sibling.Children[0] != "dir1.view1" {
+		log.Fatalf("expected to find child node with name of dir1.view1, got %q" , sibling.Children[0])
+	}
+
+	if sibling.Parents[0] != "root" {
+		log.Fatalf("expected to find parent node with name of root, got %q" , sibling.Parents[0])
+	}
+
+	dir1view1 := nodes["dir1.view1"]
+	if dir1view1.Parents[0] != "root" {
+		log.Fatalf("expected to find parent node with name of dir1.view1, got %q" , sibling.Parents[0])
+	}
+
+	if dir1view1.Parents[1] != "sibling" {
+		log.Fatalf("expected to find parent node with name of sibling, got %q" , sibling.Parents[1])
+	}
+
+	//if len(dir1view1.Parents) != 2 {
+	//	log.Fatalf("expected to find 2 parent nodes, got %q" , len(dir1view1.Parents))
+	//}
+
+	dir1dir2view1 := nodes["dir1.dir2.view1"]
+	if len(dir1dir2view1.Children) != 0 {
+		log.Fatalf("expected to find 0 children nodes, got %d" , len(dir1dir2view1.Children))
+	}
+
+	if dir1dir2view1.Parents[0] != "dir1.view1" {
+		log.Fatalf("expected to find dir1.view1 parent node, got %q" , dir1dir2view1.Parents[0])
+	}
+
+	if dir1dir2view1.Parents[1] != "dir1.view2" {
+		log.Fatalf("expected to find dir1.view2 parent node, got %q" , dir1dir2view1.Parents[1])
+	}
+}
 
 func TestFindAllIncludes(t *testing.T) {
 	var siblingFound bool
@@ -32,39 +96,13 @@ func TestFindAllIncludes(t *testing.T) {
 	}
 }
 
-func TestBuildViewTree(t *testing.T) {
-	view_indexer := newViewIndexer()
-
-	tree := view_indexer.Index("root")
-
-	if (tree.Name != "root") {
-		log.Fatal("expected to find root node with name of root")
-	}
-
-	if (tree.Children[0].Name != "account.sub-header") {
-		log.Fatal("expected to find child node with name of sibling")
-	}
-
-	if (tree.Children[1].Name != "sibling") {
-		log.Fatal("expected to find child node with name of sibling")
-	}
-
-	if (tree.Children[2].Name != "dir1.view1") {
-		log.Fatal("expected to find child node with name of dir1.view1")
-	}
-
-	if (tree.Children[2].Children[1].Name != "ops._nav") {
-		log.Fatal("expected to find child node with name of ops._nav")
-	}
-
-	if (tree.Children[2].Children[0].Name != "dir2.view2") {
-		log.Fatal("expected to find child node with name of dir2.view2")
-	}
-}
-
 func newViewIndexer() *ViewIndexer {
+	fakeWriter := bufio.NewWriter(new(bytes.Buffer))
+
 	return &ViewIndexer{
-		&ViewExplainer{},
-		getViewFinder(),
+		RootDir: "../test_fixtures/views2",
+		Explainer: &VariableCollector{},
+		ViewFinder: getViewFinder(),
+		Writer: fakeWriter,
 	}
 }
