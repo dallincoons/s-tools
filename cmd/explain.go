@@ -39,34 +39,41 @@ to quickly create a Cobra application.`,
 		view_name, _ := cmd.Flags().GetString("view")
 		show_parents, _ := cmd.Flags().GetBool("parents")
 
-		explainer := &stool.VariableCollector{}
-		finder := &stool.ViewFinder{
-			view_root,
-		}
-
-		collector := &stool.ViewExplainer{ViewIndexer:stool.ViewIndexer{
-			RootDir:   view_root,
-			Explainer:  explainer,
-			ViewFinder: finder,
-			Writer:     bufio.NewWriter(os.Stdout),
-		}}
+		explainer := getExplainer(view_root)
 
 		if show_parents {
-			parents := collector.CollectParentsFrom(view_name)
-
-			for parent, _ := range parents {
-				fmt.Println(parent)
-			}
+			showParents(explainer, view_name)
 
 			return
 		}
 
-		variables := collector.CollectVariablesFrom(view_name)
+		variables := explainer.CollectVariablesFrom(view_name)
 
 		for v, count := range variables {
-			fmt.Fprintf(os.Stdout,"%-2d %-8s\n", count, v)
+			fmt.Fprintf(os.Stdout, "%-2d %-8s\n", count, v)
 		}
 	},
+}
+
+func showParents(explainer stool.ViewExplainer, view_name string) {
+	parents := explainer.CollectParentsFrom(view_name)
+
+	for parent, _ := range parents {
+		fmt.Println(parent)
+	}
+}
+
+func getExplainer(view_root string) stool.ViewExplainer {
+	finder := &stool.ViewFinder{
+		view_root,
+	}
+
+	return stool.ViewExplainer{ViewIndexer: stool.ViewIndexer{
+		RootDir:    view_root,
+		Explainer:  &stool.VariableCollector{},
+		ViewFinder: finder,
+		Writer:     bufio.NewWriter(os.Stdout),
+	}}
 }
 
 func init() {
