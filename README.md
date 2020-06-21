@@ -47,7 +47,7 @@ To clone a database, run
 
 By default this will update any detected Laravel `.env` file that exists in the current working directory, 
 to change the `DATABASE=` entry to point to the cloned database. If you wish to not update your `.env`
-file, add the flag `--switch false`
+file, add the flag `--switch=false`
 
  ## Drop a database
  
