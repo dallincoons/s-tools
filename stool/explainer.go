@@ -1,7 +1,9 @@
 package stool
 
 import (
+	"bufio"
 	"io/ioutil"
+	"os"
 	"regexp"
 )
 
@@ -27,4 +29,17 @@ func (this *VariableCollector) GetAllVariablesFrom(path string) (map[string]int,
 	}
 
 	return variablesCounts, nil
+}
+
+func GetExplainer(view_root string) ViewExplainer {
+	finder := &ViewFinder{
+		view_root,
+	}
+
+	return ViewExplainer{ViewIndexer:ViewIndexer{
+		RootDir:    view_root,
+		Explainer:  &VariableCollector{},
+		ViewFinder: finder,
+		Writer:     bufio.NewWriter(os.Stdout),
+	}}
 }

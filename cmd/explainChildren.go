@@ -17,15 +17,16 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
 	"surgio-tools/stool"
+
+	"github.com/spf13/cobra"
 )
 
-// explainCmd represents the explain command
-var explainCmd = &cobra.Command{
-	Use:   "explain",
+// explainChildrenCmd represents the explainChildren command
+var explainChildrenCmd = &cobra.Command{
+	Use:   "explain_children",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -36,15 +37,8 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		view_root := viper.GetString("views.root")
 		view_name, _ := cmd.Flags().GetString("view")
-		show_parents, _ := cmd.Flags().GetBool("parents")
 
 		explainer := stool.GetExplainer(view_root)
-
-		if show_parents {
-			showParents(explainer, view_name)
-
-			return
-		}
 
 		variables := explainer.CollectVariablesFromParents(view_name)
 
@@ -54,19 +48,19 @@ to quickly create a Cobra application.`,
 	},
 }
 
-func showParents(explainer stool.ViewExplainer, view_name string) {
-	parents := explainer.CollectParentsFrom(view_name)
-
-	for parent, _ := range parents {
-		fmt.Println(parent)
-	}
-}
-
 func init() {
-	explainCmd.Flags().String("view", "", "specify name of view to explain")
-	explainCmd.MarkFlagRequired("view")
+	explainChildrenCmd.Flags().String("view", "", "specify name of view to explain")
+	explainChildrenCmd.MarkFlagRequired("view")
 
-	explainCmd.Flags().Bool("parents", false, "specify whether to show all parents of view")
+	rootCmd.AddCommand(explainChildrenCmd)
 
-	rootCmd.AddCommand(explainCmd)
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// explainChildrenCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// explainChildrenCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

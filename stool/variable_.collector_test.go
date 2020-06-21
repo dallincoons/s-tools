@@ -31,15 +31,55 @@ func TestGetAllParentsInTree(t *testing.T) {
 	}
 }
 
-func TestGetAllVariablesInTree(t *testing.T) {
+func TestGetAllVariablesFromParentsInTree(t *testing.T) {
 	explainer := newExplainer()
 
-	variables := explainer.CollectVariablesFrom("dir1.dir2.view1")
+	variables := explainer.CollectVariablesFromParents("dir1.dir2.view1")
 
 	_, jimmy_found := variables["$jimmy"]
 
 	if !jimmy_found {
 		log.Fatal("jimmy variable not found")
+	}
+}
+
+func TestGetAllVariablesFromChildrenInTree(t *testing.T) {
+	explainer := newExplainer()
+
+	variables := explainer.CollectVariablesFromChildren("cousin")
+
+	torn_count, torn_found := variables["$torn"]
+
+	if !torn_found {
+		log.Fatal("torn variable not found")
+	}
+
+	if torn_count != 1 {
+		log.Fatalf("torn variable should be found 1 time, found %d times", torn_count)
+	}
+
+	blondie_count, blondie_found := variables["$blondie"]
+
+	if !blondie_found {
+		log.Fatal("blondie variable not found")
+	}
+
+	if blondie_count != 1 {
+		log.Fatalf("blondie variable should be found 1 time, found %d times", blondie_count)
+	}
+
+	kinks_count, kinks_found := variables["$kinks"]
+
+	if !kinks_found {
+		log.Fatal("kinks variable not found")
+	}
+
+	if kinks_count != 1 {
+		log.Fatalf("kinks variable should be found 1 time, found %d times", kinks_count)
+	}
+
+	if len(variables) != 3 {
+		log.Fatal("expected only 3 variables to exist in the cousin tree")
 	}
 }
 

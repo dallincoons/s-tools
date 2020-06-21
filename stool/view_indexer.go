@@ -67,6 +67,7 @@ func (this *ViewIndexer) IndexViews(root string) map[string]ViewNode {
 
 func (this *ViewIndexer) addNodeChildren(node *ViewNode, blade *Blade) {
 	path, _ := blade.GetPath(node.Name)
+	child_already_exists := false
 
 	includes, _ := this.FindAllIncludes(this.RootDir + string(filepath.Separator) + path)
 
@@ -75,7 +76,14 @@ func (this *ViewIndexer) addNodeChildren(node *ViewNode, blade *Blade) {
 
 		if found {
 			childNode.Parents = append(childNode.Parents, node.Name)
-			node.Children = append(node.Children, include)
+
+			for _, c := range node.Children {
+				child_already_exists = (c == include)
+			}
+
+			if !child_already_exists {
+				node.Children = append(node.Children, include)
+			}
 
 			nodes[include] = childNode
 			nodes[node.Name] = *node
