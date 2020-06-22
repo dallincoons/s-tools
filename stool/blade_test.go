@@ -16,6 +16,17 @@ func TestStoresViewPathAsBladeName(t *testing.T) {
 	}
 }
 
+func TestFileNameIsTrimmedCorrectly(t *testing.T) {
+	b := newBlade()
+
+	b.AddPath("/case/detail.blade.php")
+	path, _ := b.GetPath("case.detail")
+
+	if (path != "/case/detail.blade.php") {
+		log.Fatal("expected /case/detail.blade.php")
+	}
+}
+
 func newBlade() *Blade {
 	return &Blade{
 		RootDir: "hot/topic",

@@ -25,7 +25,7 @@ import (
 
 // explainCmd represents the explain command
 var explainCmd = &cobra.Command{
-	Use:   "explain",
+	Use:   "explain_parents",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -36,7 +36,7 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		view_root := viper.GetString("views.root")
 		view_name, _ := cmd.Flags().GetString("view")
-		show_parents, _ := cmd.Flags().GetBool("parents")
+		show_parents, _ := cmd.Flags().GetBool("view-names")
 
 		explainer := stool.GetExplainer(view_root)
 
@@ -66,7 +66,7 @@ func init() {
 	explainCmd.Flags().String("view", "", "specify name of view to explain")
 	explainCmd.MarkFlagRequired("view")
 
-	explainCmd.Flags().Bool("parents", false, "specify whether to show all parents of view")
+	explainCmd.Flags().Bool("view-names", false, "specify whether to show all parent view names")
 
 	rootCmd.AddCommand(explainCmd)
 }

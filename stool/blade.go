@@ -12,7 +12,7 @@ type Blade struct {
 }
 
 func (this *Blade) AddPath(p string) {
-	path := strings.TrimRight(p, ".blade.php")
+	path := strings.TrimSuffix(p, ".blade.php")
 	base := strings.Trim(path, "/")
 
 	pathLookup[strings.Replace(base, "/", ".", -1)] = p

@@ -37,10 +37,11 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		view_root := viper.GetString("views.root")
 		view_name, _ := cmd.Flags().GetString("view")
+		//show_view_names, _ := cmd.Flags().GetString("view-names")
 
 		explainer := stool.GetExplainer(view_root)
 
-		variables := explainer.CollectVariablesFromParents(view_name)
+		variables := explainer.CollectVariablesFromChildren(view_name)
 
 		for v, count := range variables {
 			fmt.Fprintf(os.Stdout, "%-2d %-8s\n", count, v)
@@ -52,15 +53,7 @@ func init() {
 	explainChildrenCmd.Flags().String("view", "", "specify name of view to explain")
 	explainChildrenCmd.MarkFlagRequired("view")
 
+	//explainCmd.Flags().Bool("view-names", false, "specify whether to show all children view names")
+
 	rootCmd.AddCommand(explainChildrenCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// explainChildrenCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// explainChildrenCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
