@@ -6,6 +6,7 @@ type ViewExplainer struct {
 
 var variables = make(map[string]int)
 var parents = make(map[string]ViewNode)
+var children = make(map[string]ViewNode)
 
 func (this *ViewExplainer) CollectParentsFrom(viewName string) map[string]bool {
 	parents = make(map[string]ViewNode)
@@ -24,6 +25,23 @@ func (this *ViewExplainer) CollectParentsFrom(viewName string) map[string]bool {
 	return parentNameSet
 }
 
+func (this *ViewExplainer) CollectChildrenFrom(viewName string) map[string]bool {
+	children = map[string]ViewNode{}
+	childrenNameSet := make(map[string]bool)
+
+	nodes := this.ViewIndexer.IndexViews(this.ViewIndexer.RootDir)
+
+	this.collectChildren(viewName, nodes)
+
+	for _, p := range children {
+		childrenNameSet[p.Name] = true
+	}
+
+	delete(childrenNameSet, viewName)
+
+	return childrenNameSet
+}
+
 func (this *ViewExplainer) collectParents(viewName string, nodes map[string]ViewNode) {
 	node, _  := nodes[viewName]
 
@@ -31,6 +49,16 @@ func (this *ViewExplainer) collectParents(viewName string, nodes map[string]View
 
 	for _, parent := range node.Parents {
 		this.collectParents(parent, nodes)
+	}
+}
+
+func (this *ViewExplainer) collectChildren(viewName string, nodes map[string]ViewNode) {
+	node, _  := nodes[viewName]
+
+	children[viewName] = node
+
+	for _, child := range node.Children {
+		this.collectChildren(child, nodes)
 	}
 }
 

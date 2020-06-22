@@ -36,7 +36,7 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		view_root := viper.GetString("views.root")
 		view_name, _ := cmd.Flags().GetString("view")
-		show_parents, _ := cmd.Flags().GetBool("view-names")
+		show_parents, _ := cmd.Flags().GetBool("file-names")
 
 		explainer := stool.GetExplainer(view_root)
 
@@ -66,7 +66,7 @@ func init() {
 	explainCmd.Flags().String("view", "", "specify name of view to explain")
 	explainCmd.MarkFlagRequired("view")
 
-	explainCmd.Flags().Bool("view-names", false, "specify whether to show all parent view names")
+	explainCmd.Flags().Bool("file-names", false, "specify whether to show all parent view names")
 
 	rootCmd.AddCommand(explainCmd)
 }

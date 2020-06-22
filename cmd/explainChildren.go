@@ -37,9 +37,15 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		view_root := viper.GetString("views.root")
 		view_name, _ := cmd.Flags().GetString("view")
-		//show_view_names, _ := cmd.Flags().GetString("view-names")
+		show_view_names, _ := cmd.Flags().GetBool("file-names")
 
 		explainer := stool.GetExplainer(view_root)
+
+		if show_view_names {
+			showChildren(explainer, view_name)
+
+			return
+		}
 
 		variables := explainer.CollectVariablesFromChildren(view_name)
 
@@ -49,11 +55,19 @@ to quickly create a Cobra application.`,
 	},
 }
 
+func showChildren(explainer stool.ViewExplainer, view_name string) {
+	children := explainer.CollectChildrenFrom(view_name)
+
+	for child := range children {
+		fmt.Println(child)
+	}
+}
+
 func init() {
 	explainChildrenCmd.Flags().String("view", "", "specify name of view to explain")
 	explainChildrenCmd.MarkFlagRequired("view")
 
-	//explainCmd.Flags().Bool("view-names", false, "specify whether to show all children view names")
+	explainChildrenCmd.Flags().Bool("file-names", false, "specify whether to show all children view names")
 
 	rootCmd.AddCommand(explainChildrenCmd)
 }

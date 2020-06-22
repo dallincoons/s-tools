@@ -31,6 +31,24 @@ func TestGetAllParentsInTree(t *testing.T) {
 	}
 }
 
+func TestGetAllChildrenInTree(t *testing.T) {
+	explainer := newExplainer()
+
+	children := explainer.CollectChildrenFrom("root")
+
+	if !children["dir1.dir2.view1"] {
+		log.Fatal("dir1.view2.view1 not found as a child")
+	}
+
+	if !children["dir1.view1"] {
+		log.Fatal("dir1.view1 not found as a child")
+	}
+
+	if !children["sibling"] {
+		log.Fatal("sibling not found as a child")
+	}
+}
+
 func TestGetAllVariablesFromParentsInTree(t *testing.T) {
 	explainer := newExplainer()
 
