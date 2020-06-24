@@ -69,7 +69,7 @@ func (this *ViewIndexer) addNodeChildren(node *ViewNode, blade *Blade) {
 	path, _ := blade.GetPath(node.Name)
 	child_already_exists := false
 
-	includes, _ := this.FindAllIncludes(this.RootDir + string(filepath.Separator) + path)
+	includes, _ := this.FindAllIncludes(filepath.Join(this.RootDir, path))
 
 	for _, include := range includes {
 		childNode, found := nodes[include]
