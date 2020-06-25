@@ -17,9 +17,7 @@ type ChildrenCollection struct {
 }
 
 func (this *ViewExplainer) CollectParentsFrom(viewName string) map[string]bool {
-	parentCollection := &ParentCollection{
-		Parents:make(map[string]ViewNode),
-	}
+	parentCollection := this.makeParentCollection()
 	parentNameSet := make(map[string]bool)
 
 	nodes := this.ViewIndexer.IndexViews(this.ViewIndexer.RootDir)
@@ -35,8 +33,14 @@ func (this *ViewExplainer) CollectParentsFrom(viewName string) map[string]bool {
 	return parentNameSet
 }
 
+func (this *ViewExplainer) makeParentCollection() *ParentCollection {
+	return &ParentCollection{
+		Parents: make(map[string]ViewNode),
+	}
+}
+
 func (this *ViewExplainer) CollectChildrenFrom(viewName string) map[string]bool {
-	childrenCollection := &ChildrenCollection{Children: make(map[string]ViewNode)}
+	childrenCollection := this.getChildrenCollection()
 	childrenNameSet := make(map[string]bool)
 
 	nodes := this.ViewIndexer.IndexViews(this.ViewIndexer.RootDir)
@@ -50,6 +54,12 @@ func (this *ViewExplainer) CollectChildrenFrom(viewName string) map[string]bool 
 	delete(childrenNameSet, viewName)
 
 	return childrenNameSet
+}
+
+func (this *ViewExplainer) getChildrenCollection() *ChildrenCollection {
+	return &ChildrenCollection{
+		Children: make(map[string]ViewNode),
+	}
 }
 
 func (this *ViewExplainer) collectParents(viewName string, nodes map[string]ViewNode, collection *ParentCollection) {
@@ -73,9 +83,7 @@ func (this *ViewExplainer) collectChildren(viewName string, nodes map[string]Vie
 }
 
 func (this *ViewExplainer) CollectVariablesFromParents(viewName string) map[string]int {
-	collection := &VariableCollection{
-		Variables: make(map[string]int),
-	}
+	collection := this.makeVariableCollection()
 
 	nodes := this.ViewIndexer.IndexViews(this.ViewIndexer.RootDir)
 
@@ -87,13 +95,17 @@ func (this *ViewExplainer) CollectVariablesFromParents(viewName string) map[stri
 func (this *ViewExplainer) CollectVariablesFromChildren(viewName string) map[string]int {
 	nodes := this.ViewIndexer.IndexViews(this.ViewIndexer.RootDir)
 
-	collection := &VariableCollection{
-		Variables: make(map[string]int),
-	}
+	collection := this.makeVariableCollection()
 
 	this.collectTreeVariablesDesc(viewName, nodes, collection)
 
 	return collection.Variables
+}
+
+func (this *ViewExplainer) makeVariableCollection() *VariableCollection {
+	return &VariableCollection{
+		Variables: make(map[string]int),
+	}
 }
 
 func (this *ViewExplainer) collectTreeVariables(viewName string, nodes map[string]ViewNode, collection *VariableCollection) {
