@@ -4,14 +4,16 @@ type ViewExplainer struct {
 	ViewIndexer ViewIndexer
 }
 
-var children = make(map[string]ViewNode)
-
 type VariableCollection struct {
 	Variables map[string]int
 }
 
 type ParentCollection struct {
 	Parents map[string]ViewNode
+}
+
+type ChildrenCollection struct {
+	Children map[string]ViewNode
 }
 
 func (this *ViewExplainer) CollectParentsFrom(viewName string) map[string]bool {
@@ -34,14 +36,14 @@ func (this *ViewExplainer) CollectParentsFrom(viewName string) map[string]bool {
 }
 
 func (this *ViewExplainer) CollectChildrenFrom(viewName string) map[string]bool {
-	children = map[string]ViewNode{}
+	childrenCollection := &ChildrenCollection{Children: make(map[string]ViewNode)}
 	childrenNameSet := make(map[string]bool)
 
 	nodes := this.ViewIndexer.IndexViews(this.ViewIndexer.RootDir)
 
-	this.collectChildren(viewName, nodes)
+	this.collectChildren(viewName, nodes, childrenCollection)
 
-	for _, p := range children {
+	for _, p := range childrenCollection.Children {
 		childrenNameSet[p.Name] = true
 	}
 
@@ -60,13 +62,13 @@ func (this *ViewExplainer) collectParents(viewName string, nodes map[string]View
 	}
 }
 
-func (this *ViewExplainer) collectChildren(viewName string, nodes map[string]ViewNode) {
+func (this *ViewExplainer) collectChildren(viewName string, nodes map[string]ViewNode, collection *ChildrenCollection) {
 	node, _  := nodes[viewName]
 
-	children[viewName] = node
+	collection.Children[viewName] = node
 
 	for _, child := range node.Children {
-		this.collectChildren(child, nodes)
+		this.collectChildren(child, nodes, collection)
 	}
 }
 
