@@ -51,9 +51,9 @@ func TestIndexEntireDirectory(t *testing.T) {
 		log.Fatalf("expected to find parent node with name of sibling, got %q" , sibling.Parents[1])
 	}
 
-	//if len(dir1view1.Parents) != 2 {
-	//	log.Fatalf("expected to find 2 parent nodes, got %q" , len(dir1view1.Parents))
-	//}
+	if len(dir1view1.Parents) != 2 {
+		log.Fatalf("expected to find 2 parent nodes, got %q" , len(dir1view1.Parents))
+	}
 
 	dir1dir2view1 := nodes["dir1.dir2.view1"]
 	if len(dir1dir2view1.Children) != 0 {

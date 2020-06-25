@@ -27,26 +27,11 @@ type ViewNode struct {
 }
 
 var root *ViewNode
-var rx = regexp.MustCompile("(.+).blade.php")
 
 func (this *ViewIndexer) IndexViews(root string) map[string]ViewNode {
-	blade := this.storeBladeViewNames(root)
+	blade := this.indexBladeViews(root)
 
 	var p string
-
-	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() {
-			return nil
-		}
-		p, _ = filepath.Rel(root, path)
-		viewName, _ := blade.GetName(p)
-
-		node := this.getNode(viewName, *blade)
-
-		nodes[viewName] = *node
-
-		return nil
-	})
 
 	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
@@ -68,6 +53,7 @@ func (this *ViewIndexer) IndexViews(root string) map[string]ViewNode {
 func (this *ViewIndexer) addNodeChildren(node *ViewNode, blade *Blade) {
 	path, _ := blade.GetPath(node.Name)
 	child_already_exists := false
+	parent_already_exists := false
 
 	includes, _ := this.FindAllIncludes(filepath.Join(this.RootDir, path))
 
@@ -75,14 +61,26 @@ func (this *ViewIndexer) addNodeChildren(node *ViewNode, blade *Blade) {
 		childNode, found := nodes[include]
 
 		if found {
-			childNode.Parents = append(childNode.Parents, node.Name)
-
 			for _, c := range node.Children {
 				child_already_exists = (c == include)
+				if child_already_exists {
+					break
+				}
+			}
+
+			for _, c := range childNode.Parents {
+				parent_already_exists = (c == node.Name)
+				if parent_already_exists {
+					break
+				}
 			}
 
 			if !child_already_exists {
 				node.Children = append(node.Children, include)
+			}
+
+			if !parent_already_exists {
+				childNode.Parents = append(childNode.Parents, node.Name)
 			}
 
 			nodes[include] = childNode
@@ -108,7 +106,7 @@ func (this *ViewIndexer) getNode(name string, blade Blade) *ViewNode {
 	return &node
 }
 
-func (this *ViewIndexer) storeBladeViewNames(root string) *Blade {
+func (this *ViewIndexer) indexBladeViews(root string) *Blade {
 	blade := &Blade{}
 	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
@@ -123,10 +121,20 @@ func (this *ViewIndexer) storeBladeViewNames(root string) *Blade {
 
 		blade.AddPath(rel)
 
+		this.storeNode(blade, rel)
+
 		return nil
 	})
 
 	return blade
+}
+
+func (this *ViewIndexer) storeNode(blade *Blade, rel string) {
+	viewName, _ := blade.GetName(rel)
+
+	node := this.getNode(viewName, *blade)
+
+	nodes[viewName] = *node
 }
 
 func (this *ViewIndexer) IndexView(view_name string) []*ViewNode {
