@@ -20,6 +20,11 @@ func TestIndexEntireDirectory(t *testing.T) {
 
 	nodes := indexer.IndexViews("../test_fixtures/views2")
 
+	_, controller_found := nodes["SomeController.php"]
+	if controller_found {
+		log.Fatalf("non blade file found: SomeController")
+	}
+
 	root := nodes["root"]
 	if root.Children[0] != "sibling" {
 		log.Fatalf("expected to find child node with name of sibling, got %q" , root.Children[0])

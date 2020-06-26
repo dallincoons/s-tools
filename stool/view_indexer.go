@@ -2,11 +2,11 @@ package stool
 
 import (
 	"bufio"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 var index = make(map[string]*ViewNode)
@@ -34,7 +34,7 @@ func (this *ViewIndexer) IndexViews(root string) map[string]ViewNode {
 	var p string
 
 	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() {
+		if info.IsDir() || !strings.HasSuffix(info.Name(),".blade.php") {
 			return nil
 		}
 		p, _ = filepath.Rel(root, path)
@@ -109,7 +109,7 @@ func (this *ViewIndexer) getNode(name string, blade Blade) *ViewNode {
 func (this *ViewIndexer) indexBladeViews(root string) *Blade {
 	blade := &Blade{}
 	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() {
+		if info.IsDir() || !strings.HasSuffix(info.Name(),".blade.php") {
 			return nil
 		}
 
@@ -138,7 +138,6 @@ func (this *ViewIndexer) storeNode(blade *Blade, rel string) {
 }
 
 func (this *ViewIndexer) IndexView(view_name string) []*ViewNode {
-	fmt.Println("test")
 	path := this.ViewFinder.GetFilePath(view_name)
 	includes, err := this.FindAllIncludes(path)
 	var flatTree []*ViewNode
