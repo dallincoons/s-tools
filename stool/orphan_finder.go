@@ -24,15 +24,15 @@ func (this *OrphanFinder) GetOrphans() []string {
 	controllerUsages := make(map[string]bool)
 
 	filepath.Walk(this.Root, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() || !strings.HasSuffix(info.Name(), "Controller.php") {
+		if (!strings.HasSuffix(info.Name(), "Controller.php") && !strings.HasSuffix(info.Name(), "DataTable.php")) {
 			return nil
 		}
 
 		contents, _ := ioutil.ReadFile(path)
 
-		view_re := regexp.MustCompile("(?:view|render)\\('(.+)'\\)")
+		re := regexp.MustCompile("(?:view|render|route)\\('(.+?)'[),]")
 
-		for _, usage := range view_re.FindAllStringSubmatch(string(contents), -1) {
+		for _, usage := range re.FindAllStringSubmatch(string(contents), -1) {
 			controllerUsages[usage[1]]	= true
 		}
 

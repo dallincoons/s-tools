@@ -19,6 +19,8 @@ func TestGetNamesOfOrphanFiles(t *testing.T) {
 	dir2view2found := orphanMap["dir2.view2"]
 	usedbycontrollerfound := orphanMap["used_by_controller"]
 	usedbydatatable := orphanMap["used_by_data_table"]
+	usedbydatatable2 := orphanMap["used_by_data_table2"]
+	usedbyroutedefinition := orphanMap["used_by_route_definition"]
 
 	if !dir1view1found {
 		log.Fatalf("orphan dir1.view3 not found")
@@ -34,6 +36,14 @@ func TestGetNamesOfOrphanFiles(t *testing.T) {
 
 	if usedbydatatable {
 		log.Fatalf("non orphan usedbydatatable found")
+	}
+
+	if usedbydatatable2 {
+		log.Fatalf("non orphan usedbydatatable2 found")
+	}
+
+	if usedbyroutedefinition {
+		log.Fatalf("non orphan usedbyroutedefinition found")
 	}
 }
 
