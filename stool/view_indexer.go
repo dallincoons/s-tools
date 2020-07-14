@@ -204,11 +204,17 @@ func (this *ViewIndexer) FindAllIncludes(path string) ([]string, error) {
 
 func (this *ViewIndexer) getViewNames(contents []byte, viewNames []string) []string {
 	re := regexp.MustCompile("@include\\('(.+)\\'")
+	re2 := regexp.MustCompile("@includeWhen\\(.+?,\\s*'(.+)',")
 
 	results := re.FindAllStringSubmatch(string(contents), -1)
+	results2 := re2.FindAllStringSubmatch(string(contents), -1)
 
 	for _, result := range results {
 		viewNames = append(viewNames, result[1])
+	}
+
+	for _, result2 := range results2 {
+		viewNames = append(viewNames, result2[1])
 	}
 
 	return viewNames
