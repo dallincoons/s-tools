@@ -30,7 +30,7 @@ func (this *OrphanFinder) GetOrphans() []string {
 
 		contents, _ := ioutil.ReadFile(path)
 
-		re := regexp.MustCompile("(?:view|render|route)\\('(.+?)'[),]")
+		re := regexp.MustCompile("(?:view|render|make|route)\\('(.+?)'[),]")
 
 		for _, usage := range re.FindAllStringSubmatch(string(contents), -1) {
 			controllerUsages[usage[1]]	= true
