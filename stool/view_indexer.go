@@ -40,6 +40,7 @@ func (this *ViewIndexer) IndexViews(root string) map[string]ViewNode {
 		p, _ = filepath.Rel(root, path)
 		viewName, _ := blade.GetName(p)
 
+
 		node := this.getNode(viewName, *blade)
 
 		this.addNodeChildren(node, blade)

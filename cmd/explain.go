@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
+	"path/filepath"
 	"surgio-tools/stool"
 )
 
@@ -38,7 +39,7 @@ to quickly create a Cobra application.`,
 		view_name, _ := cmd.Flags().GetString("view")
 		show_parents, _ := cmd.Flags().GetBool("file-names")
 
-		explainer := stool.GetExplainer(view_root)
+		explainer := stool.GetExplainer(filepath.Join(view_root, "resources", "views"))
 
 		if show_parents {
 			showParents(explainer, view_name)

@@ -12,13 +12,13 @@ func TestIndexEntireDirectory(t *testing.T) {
 	fakeWriter := bufio.NewWriter(buf)
 
 	indexer := &ViewIndexer{
-		RootDir: "../test_fixtures/views2",
+		RootDir: "../test_fixtures/views2/resources/views",
 		Explainer: &VariableCollector{},
 		ViewFinder: getViewFinder(),
 		Writer: fakeWriter,
 	}
 
-	nodes := indexer.IndexViews("../test_fixtures/views2")
+	nodes := indexer.IndexViews("../test_fixtures/views2/resources/views")
 
 	_, controller_found := nodes["SomeController.php"]
 	if controller_found {
@@ -57,7 +57,7 @@ func TestIndexEntireDirectory(t *testing.T) {
 	}
 
 	if len(dir1view1.Parents) != 2 {
-		log.Fatalf("expected to find 2 parent nodes, got %q" , len(dir1view1.Parents))
+		log.Fatalf("expected to find 2 parent nodes, got %d" , len(dir1view1.Parents))
 	}
 
 	dir1dir2view1 := nodes["dir1.dir2.view1"]

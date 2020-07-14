@@ -104,7 +104,7 @@ func TestGetAllVariablesFromChildrenInTree(t *testing.T) {
 func newExplainer() *ViewExplainer {
 	return &ViewExplainer{
 		ViewIndexer: ViewIndexer{
-			RootDir:    "../test_fixtures/views2",
+			RootDir:    "../test_fixtures/views2/resources/views",
 			Explainer:  &VariableCollector{},
 			ViewFinder: &ViewFinder{},
 			Writer:     nil,

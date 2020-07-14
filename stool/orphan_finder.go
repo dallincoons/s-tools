@@ -15,7 +15,7 @@ type OrphanFinder struct {
 
 func (this *OrphanFinder) GetOrphans() []string {
 	indexer := ViewIndexer{
-		RootDir:    this.Root,
+		RootDir:    filepath.Join(this.Root, "resources", "views"),
 		Explainer:  &VariableCollector{},
 		ViewFinder: &ViewFinder{},
 		Writer:     bufio.NewWriter(os.Stdout),
@@ -23,7 +23,7 @@ func (this *OrphanFinder) GetOrphans() []string {
 
 	controllerUsages := make(map[string]bool)
 
-	filepath.Walk(this.Root, func(path string, info os.FileInfo, err error) error {
+	filepath.Walk(filepath.Join(this.Root, "app"), func(path string, info os.FileInfo, err error) error {
 		if (!strings.HasSuffix(info.Name(), "Controller.php") && !strings.HasSuffix(info.Name(), "DataTable.php")) {
 			return nil
 		}
@@ -39,7 +39,7 @@ func (this *OrphanFinder) GetOrphans() []string {
 		return nil
 	})
 
-	views := indexer.IndexViews(this.Root)
+	views := indexer.IndexViews(filepath.Join(this.Root, "resources", "views"))
 
 	orphanCandidates := []string{}
 	for _, view := range views {
