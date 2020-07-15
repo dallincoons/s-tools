@@ -24,7 +24,7 @@ func (this *OrphanFinder) GetOrphans() []string {
 	controllerUsages := make(map[string]bool)
 
 	filepath.Walk(filepath.Join(this.Root, "app"), func(path string, info os.FileInfo, err error) error {
-		if (!strings.HasSuffix(info.Name(), "Controller.php") && !strings.HasSuffix(info.Name(), "DataTable.php")) {
+		if (!strings.HasSuffix(info.Name(), "Controller.php") && !strings.HasSuffix(info.Name(), "DataTable.php") && !strings.Contains(path, "Mail")) {
 			return nil
 		}
 
@@ -41,14 +41,17 @@ func (this *OrphanFinder) GetOrphans() []string {
 
 	views := indexer.IndexViews(filepath.Join(this.Root, "resources", "views"))
 
+	orphanFound := make(map[string]bool)
 	orphanCandidates := []string{}
 	for _, view := range views {
 		controllerUsageFound := controllerUsages[view.Name]
-		if controllerUsageFound {
+		orphanAlreadyFound := orphanFound[view.Name]
+		if controllerUsageFound || orphanAlreadyFound {
 			continue
 		}
 		if len(view.Parents) == 0 && len(view.Children) == 0 {
 			orphanCandidates = append(orphanCandidates, view.Name)
+			orphanFound[view.Name] = true
 		}
 	}
 

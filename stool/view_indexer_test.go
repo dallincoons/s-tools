@@ -78,7 +78,15 @@ func TestIndexEntireDirectory(t *testing.T) {
 		log.Fatalf("expected to find one child node of include_when")
 	}
 	if includeWhen.Children[0] != "dir1.view4" {
-		log.Fatalf("expected to find dir1.view4 child node, got %q" , dir1dir2view1.Parents[1])
+		log.Fatalf("expected to find dir1.view4 child node, got %q" , includeWhen.Children[0])
+	}
+
+	components := nodes["components"]
+	if len(components.Children) != 1 {
+		log.Fatalf("expected to find one child node of component_child")
+	}
+	if components.Children[0] != "dir3.component_child" {
+		log.Fatalf("expected to find component_child child node, got %q" , components.Children[0])
 	}
 }
 
